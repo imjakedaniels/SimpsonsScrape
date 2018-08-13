@@ -80,33 +80,24 @@ Simpsons %>%
   summarise(Rating = mean(Rating)) %>%
   ggplot() +
   geom_line(aes(x=Season, y=Rating), color = "Blue", size = 1.5) +
+    scale_x_continuous(breaks=c(1:28), labels=c(1:28), limits=c(1,28)) +
+    annotate("rect", xmin=2, xmax=9, ymin=8, ymax=8.9, alpha = .4, fill = "yellow") +
+    annotate("text", x=5.4, y= 8.6, label = "Simpsons Mania", color = "black") +
+    annotate("rect", xmin=13, xmax=28, ymin=6.5, ymax=7.2, alpha = .2, fill = "red") +
+    annotate("text", x=20.5, y= 7.1, label = "Zombie Simpsons", color = "black") +
   geom_line(aes(x=Season, y=mean(Rating)), linetype=2, color = "Black") + 
-  annotate("text", x=5.4, y= 8.6, label = "Simpsons Mania", color = "black") +
-  scale_x_continuous(breaks=c(1:28), labels=c(1:28), limits=c(1,28)) +
-  annotate("text", x=27, y= 7.45, label = "avg", color = "black", size = 3) +
-  annotate("rect", xmin=2, xmax=9, ymin=8, ymax=8.9, alpha = .2) +
-  annotate("text", x=20.5, y= 7.1, label = "Zombie Simpsons", color = "black") +
-  annotate("rect", xmin=13, xmax=28, ymin=6.5, ymax=7.2, alpha = .2) +
-  ggtitle("The Steady Decline of The Simpsons") +
-  theme_classic() + 
-  labs(subtitle = "Information Gathered from IMDB")
-  theme(plot.title = element_text(family='', face = 'bold', colour = 'black', size = 16))
-
+    annotate("text", x=27, y= 7.45, label = "avg", color = "black", size = 3) +
+  theme_bw() + 
+    labs(title = "The Steady Decline of The Simpsons",
+          subtitle = "Average Ratings by Season",
+          caption = "Source: IMDB 2018") +
+    theme(plot.title = element_text(family='', face = 'bold', colour = 'black', size = 20),
+          plot.subtitle = element_text(family='', face = 'italic', colour = 'black', size = 10),
+          plot.caption = element_text(family='', colour = 'black', size = 10),
+          plot.background = element_rect(fill = "yellow"))
 ```
 
   
 ```{r}
 boxplot(Rating ~ Season, data = Simpsons, ylab = "Rating", xlab = "Season")
-```
-
-
-
-```{r}
-Simpsons %>%
-  group_by(Season) %>%
-  summarise(Episode.Variance = var(Rating)) %>%
-  ggplot(aes(x=Season, y=Episode.Variance)) +
-  geom_smooth(ymin = 0, ymax = 10, color = "Black", size = 1, alpha =0.8) +
-  scale_x_continuous(breaks=c(1:28), labels=c(1:28),limits=c(1,28)) +
-  theme_classic() 
 ```
