@@ -4,7 +4,7 @@ author: "Jake"
 date: "April 14, 2018"
 output: html_document
 ---
-
+Required Packages
 ```{r}
 library(rvest)
 library(tidyverse)
@@ -13,42 +13,36 @@ library(scales)
 library(knitr)
 library(lubridate)
 ```
-
+Creating our URL string
 ```{r}
-#make our constant
+#first, the constant:
 url <- "http://www.imdb.com/title/tt0096697/episodes?season="
 
-#make the variable and since we are scraping dates and they are the variable factor in the url we are scraping
+#next, the variable - 
+# since we are scraping season numbers, they are the variable factor in the url
 timevalues <- 1:28
 ```
 
 
-
+Making our scraping sequence
 ```{r}
-
-#make a function we'll apply to combine
 unitedata <- function(x){
   full_url <- paste0(url, x)
   full_url
 }
 #we use paste0 which defaults our sep = "" (nothing) and collapse
 
-
 finalurl <- unitedata(timevalues)
 finalurl
-
-
 ```
 
-
+Designing our scraper using HTML elements
 ```{r}
-#designing our scraper fucntion to scower the website for html nodes containing datas we want with Selector Gadget
 imdbScrape <- function(x){
- page <- x
- name <- page %>% read_html() %>% html_nodes('#episodes_content strong a') %>% html_text() %>% as.data.frame()
-rating <- page %>% read_html() %>% html_nodes('.ipl-rating-widget > .ipl-rating-star .ipl-rating-star__rating') %>% html_text() %>% as.data.frame()
-details <- page %>% read_html() %>% html_nodes('.zero-z-index div') %>% html_text() %>% as.data.frame()
-
+  page <- x
+  name <- page %>% read_html() %>% html_nodes('#episodes_content strong a') %>% html_text() %>% as.data.frame()
+  rating <- page %>% read_html() %>% html_nodes('.ipl-rating-widget > .ipl-rating-star .ipl-rating-star__rating') %>% html_text() %>% as.data.frame()
+  details <- page %>% read_html() %>% html_nodes('.zero-z-index div') %>% html_text() %>% as.data.frame()
 
 #combining, naming, classifying our variables
  chart <- cbind(name, rating, details)
@@ -57,23 +51,22 @@ details <- page %>% read_html() %>% html_nodes('.zero-z-index div') %>% html_tex
  return(chart)
  Sys.sleep(5)
 }
-#we neutrualize the data from the  to "out"
-
 ```
 
+Execute the scraper to run through the sequence of urls (takes a few minutes)
 ```{r}
 Simpsons <- map_df(finalurl, imdbScrape)
 ```
-
+Some cleaning to organize our data
 ```{r}
 Simpsons$Season <- str_extract(Simpsons$Details, "S[0-9]+")
 Simpsons$Season <- as.numeric(str_extract(Simpsons$Season, "[0-9]+"))
 Simpsons$Episode <- str_extract(Simpsons$Details, "Ep[0-9]+")
 Simpsons$Rating <- as.numeric(Simpsons$Rating)
 Simpsons$Details <- NULL
-
 ```
 
+Visualization
 ```{r}
 Simpsons %>%
   group_by(Season) %>%
@@ -97,7 +90,7 @@ Simpsons %>%
           plot.background = element_rect(fill = "yellow"))
 ```
 
-  
+
 ```{r}
 boxplot(Rating ~ Season, data = Simpsons, ylab = "Rating", xlab = "Season")
 ```
