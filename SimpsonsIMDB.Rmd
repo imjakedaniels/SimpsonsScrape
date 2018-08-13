@@ -1,0 +1,112 @@
+---
+title: "Simpsons"
+author: "Jake"
+date: "April 14, 2018"
+output: html_document
+---
+
+```{r}
+library(rvest)
+library(tidyverse)
+library(magrittr)
+library(scales)
+library(knitr)
+library(lubridate)
+```
+
+```{r}
+#make our constant
+url <- "http://www.imdb.com/title/tt0096697/episodes?season="
+
+#make the variable and since we are scraping dates and they are the variable factor in the url we are scraping
+timevalues <- 1:28
+```
+
+
+
+```{r}
+
+#make a function we'll apply to combine
+unitedata <- function(x){
+  full_url <- paste0(url, x)
+  full_url
+}
+#we use paste0 which defaults our sep = "" (nothing) and collapse
+
+
+finalurl <- unitedata(timevalues)
+finalurl
+
+
+```
+
+
+```{r}
+#designing our scraper fucntion to scower the website for html nodes containing datas we want with Selector Gadget
+imdbScrape <- function(x){
+ page <- x
+ name <- page %>% read_html() %>% html_nodes('#episodes_content strong a') %>% html_text() %>% as.data.frame()
+rating <- page %>% read_html() %>% html_nodes('.ipl-rating-widget > .ipl-rating-star .ipl-rating-star__rating') %>% html_text() %>% as.data.frame()
+details <- page %>% read_html() %>% html_nodes('.zero-z-index div') %>% html_text() %>% as.data.frame()
+
+
+#combining, naming, classifying our variables
+ chart <- cbind(name, rating, details)
+ names(chart) <- c("Name", "Rating", "Details")
+ chart <- as.tibble(chart)
+ return(chart)
+ Sys.sleep(5)
+}
+#we neutrualize the data from the  to "out"
+
+```
+
+```{r}
+Simpsons <- map_df(finalurl, imdbScrape)
+```
+
+```{r}
+Simpsons$Season <- str_extract(Simpsons$Details, "S[0-9]+")
+Simpsons$Season <- as.numeric(str_extract(Simpsons$Season, "[0-9]+"))
+Simpsons$Episode <- str_extract(Simpsons$Details, "Ep[0-9]+")
+Simpsons$Rating <- as.numeric(Simpsons$Rating)
+Simpsons$Details <- NULL
+
+```
+
+```{r}
+Simpsons %>%
+  group_by(Season) %>%
+  summarise(Rating = mean(Rating)) %>%
+  ggplot() +
+  geom_line(aes(x=Season, y=Rating), color = "Blue", size = 1.5) +
+  geom_line(aes(x=Season, y=mean(Rating)), linetype=2, color = "Black") + 
+  annotate("text", x=5.4, y= 8.6, label = "Simpsons Mania", color = "black") +
+  scale_x_continuous(breaks=c(1:28), labels=c(1:28), limits=c(1,28)) +
+  annotate("text", x=27, y= 7.45, label = "avg", color = "black", size = 3) +
+  annotate("rect", xmin=2, xmax=9, ymin=8, ymax=8.9, alpha = .2) +
+  annotate("text", x=20.5, y= 7.1, label = "Zombie Simpsons", color = "black") +
+  annotate("rect", xmin=13, xmax=28, ymin=6.5, ymax=7.2, alpha = .2) +
+  ggtitle("The Steady Decline of The Simpsons") +
+  theme_classic() + 
+  labs(subtitle = "Information Gathered from IMDB")
+  theme(plot.title = element_text(family='', face = 'bold', colour = 'black', size = 16))
+
+```
+
+  
+```{r}
+boxplot(Rating ~ Season, data = Simpsons, ylab = "Rating", xlab = "Season")
+```
+
+
+
+```{r}
+Simpsons %>%
+  group_by(Season) %>%
+  summarise(Episode.Variance = var(Rating)) %>%
+  ggplot(aes(x=Season, y=Episode.Variance)) +
+  geom_smooth(ymin = 0, ymax = 10, color = "Black", size = 1, alpha =0.8) +
+  scale_x_continuous(breaks=c(1:28), labels=c(1:28),limits=c(1,28)) +
+  theme_classic() 
+```
