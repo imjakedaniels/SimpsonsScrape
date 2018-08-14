@@ -78,7 +78,7 @@ Simpsons %>%
   ggplot() +
   # part 1: main line graph
   geom_line(aes(x=Season, y=Rating), color = "Blue", size = 1.5) +
- 
+
   # part 2: modifying the axis
     scale_x_continuous(breaks=c(1:28), labels=c(1:28), limits=c(1,28)) +
   
@@ -93,9 +93,9 @@ Simpsons %>%
   # part 4: average line with label
   geom_line(aes(x=Season, y=mean(Rating)), linetype=2, color = "Black") + 
     annotate("text", x=27, y= 7.45, label = "avg", color = "black", size = 3) +
-  
+    
   # part 5: editing titles, caption and background
-  theme_bw() + 
+    theme_bw() +
     labs(title = "The Steady Decline of The Simpsons",
           subtitle = "Average Episode Ratings by Season",
           caption = "Source: IMDB, August 2018",
@@ -105,6 +105,6 @@ Simpsons %>%
           plot.subtitle = element_text(family='', face = 'italic', colour = 'black', size = 10),
           plot.caption = element_text(family='', colour = 'black', size = 10),
           axis.title.x = element_text(family='', face = 'bold', colour = 'black', size = 12),
-          axis.title.y = element_text(family='', colour = 'black', size = 12),
+          axis.title.y = element_text(family='', face = 'bold', colour = 'black', size = 12),
           plot.background = element_rect(fill = "yellow"))
 ```
