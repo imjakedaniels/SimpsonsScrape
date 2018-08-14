@@ -15,14 +15,12 @@ library(lubridate)
 ```
 Creating our URL string
 ```{r}
-#first, the constant:
+# first, the constant:
 url <- "http://www.imdb.com/title/tt0096697/episodes?season="
 
-#next, the variable - 
-# since we are scraping season numbers, they are the variable factor in the url
+# next, the variable:
 timevalues <- 1:28
 ```
-
 
 Making our scraping sequence
 ```{r}
@@ -30,7 +28,7 @@ unitedata <- function(x){
   full_url <- paste0(url, x)
   full_url
 }
-#we use paste0 which defaults our sep = "" (nothing) and collapse
+# we use paste0 which defaults our sep = "" (nothing) and collapse
 
 finalurl <- unitedata(timevalues)
 finalurl
@@ -44,7 +42,7 @@ imdbScrape <- function(x){
   rating <- page %>% read_html() %>% html_nodes('.ipl-rating-widget > .ipl-rating-star .ipl-rating-star__rating') %>% html_text() %>% as.data.frame()
   details <- page %>% read_html() %>% html_nodes('.zero-z-index div') %>% html_text() %>% as.data.frame()
 
-#combining, naming, classifying our variables
+# combining, naming, classifying our variables
  chart <- cbind(name, rating, details)
  names(chart) <- c("Name", "Rating", "Details")
  chart <- as.tibble(chart)
@@ -57,12 +55,17 @@ Execute the scraper to run through the sequence of urls (takes a few minutes)
 ```{r}
 Simpsons <- map_df(finalurl, imdbScrape)
 ```
+
 Some cleaning to organize our data
 ```{r}
 Simpsons$Season <- str_extract(Simpsons$Details, "S[0-9]+")
 Simpsons$Season <- as.numeric(str_extract(Simpsons$Season, "[0-9]+"))
+
 Simpsons$Episode <- str_extract(Simpsons$Details, "Ep[0-9]+")
+Simpsons$Episode <- as.numeric(str_extract(Simpsons$Episode, "[0-9]+"))
+
 Simpsons$Rating <- as.numeric(Simpsons$Rating)
+
 Simpsons$Details <- NULL
 ```
 
@@ -71,26 +74,37 @@ Visualization
 Simpsons %>%
   group_by(Season) %>%
   summarise(Rating = mean(Rating)) %>%
+  
   ggplot() +
+  # part 1: main line graph
   geom_line(aes(x=Season, y=Rating), color = "Blue", size = 1.5) +
+ 
+  # part 2: modifying the axis
     scale_x_continuous(breaks=c(1:28), labels=c(1:28), limits=c(1,28)) +
+  
+  # part 3.1: highlighting Simpsons Mania
     annotate("rect", xmin=2, xmax=9, ymin=8, ymax=8.9, alpha = .4, fill = "yellow") +
-    annotate("text", x=5.4, y= 8.6, label = "Simpsons Mania", color = "black") +
+    annotate("text", x=5.5, y= 8.6, label = "Simpsons Mania", color = "black") +
+  
+  # part 3.2: highlighting: Zombie Simpsons
     annotate("rect", xmin=13, xmax=28, ymin=6.5, ymax=7.2, alpha = .2, fill = "red") +
-    annotate("text", x=20.5, y= 7.1, label = "Zombie Simpsons", color = "black") +
+    annotate("text", x=20.7, y= 7.1, label = "Zombie Simpsons", color = "black") +
+  
+  # part 4: average line with label
   geom_line(aes(x=Season, y=mean(Rating)), linetype=2, color = "Black") + 
     annotate("text", x=27, y= 7.45, label = "avg", color = "black", size = 3) +
+  
+  # part 5: editing titles, caption and background
   theme_bw() + 
     labs(title = "The Steady Decline of The Simpsons",
-          subtitle = "Average Ratings by Season",
-          caption = "Source: IMDB 2018") +
+          subtitle = "Average Episode Ratings by Season",
+          caption = "Source: IMDB, August 2018",
+          x = "Season",
+          y = "Rating") +
     theme(plot.title = element_text(family='', face = 'bold', colour = 'black', size = 20),
           plot.subtitle = element_text(family='', face = 'italic', colour = 'black', size = 10),
           plot.caption = element_text(family='', colour = 'black', size = 10),
+          axis.title.x = element_text(family='', face = 'bold', colour = 'black', size = 12),
+          axis.title.y = element_text(family='', colour = 'black', size = 12),
           plot.background = element_rect(fill = "yellow"))
-```
-
-
-```{r}
-boxplot(Rating ~ Season, data = Simpsons, ylab = "Rating", xlab = "Season")
 ```
